@@ -10,7 +10,7 @@ For a simple sample applications please see [here](https://github.com/michal-z/z
 
 Copy `zphysics` to a subdirectory of your project and add the following to your `build.zig.zon` .dependencies:
 ```zig
-    .zphysics = .{ .path = "libs/zphysics" },
+    .zphysics = .{ .url = "https://github.com/disusdev/zig-physics/archive/refs/tags/v0.0.6.tar.gz" },
 ```
 
 Then in your `build.zig` add:
