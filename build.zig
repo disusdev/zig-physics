@@ -31,28 +31,37 @@ pub fn build(b: *std.Build) void {
     inline for (std.meta.fields(@TypeOf(options))) |field| {
         options_step.addOption(field.type, field.name, @field(options, field.name));
     }
+    
+    const options_module = options_step.createModule();
 
-    const zjolt = b.addModule("root", b.createModule(.{
+    _ = b.addModule("root", .{
         .source_file = .{ .path = "src/zphysics.zig" },
-    }));
-    zjolt.addIncludePath(.{ .path = "libs/JoltC" });
+        .dependencies = &.{
+            .{ .name = "zphysics_options", .module = options_module }
+        }
+    });
+    // b.addTranslateC(
+    // zjolt.addIncludePath(.{ .path = "libs/JoltC" });
 
     const joltc = b.addStaticLibrary(.{
         .name = "joltc",
         .target = target,
         .optimize = optimize,
     });
+    
+    joltc.installHeader("libs/JoltC/JoltPhysicsC.h", "JoltPhysicsC.h");
+    
     b.installArtifact(joltc);
 
     joltc.addIncludePath(.{ .path = "libs" });
     joltc.addIncludePath(.{ .path = "libs/JoltC" });
     joltc.linkLibC();
-    if (target.result.abi != .msvc)
+    if (target.abi != .msvc)
         joltc.linkLibCpp();
 
     const src_dir = "libs/Jolt";
-    joltc.addCSourceFiles(.{
-        .files = &.{
+    joltc.addCSourceFiles(
+        &.{
             "libs/JoltC/JoltPhysicsC.cpp",
             "libs/JoltC/JoltPhysicsC_Extensions.cpp",
             src_dir ++ "/AABBTree/AABBTreeBuilder.cpp",
@@ -186,7 +195,7 @@ pub fn build(b: *std.Build) void {
             src_dir ++ "/TriangleSplitter/TriangleSplitterMean.cpp",
             src_dir ++ "/TriangleSplitter/TriangleSplitterMorton.cpp",
         },
-        .flags = &.{
+        &.{
             "-std=c++17",
             if (@import("builtin").abi != .msvc) "-DJPH_COMPILER_MINGW" else "",
             if (options.enable_cross_platform_determinism) "-DJPH_CROSS_PLATFORM_DETERMINISTIC" else "",
@@ -195,8 +204,8 @@ pub fn build(b: *std.Build) void {
             if (options.enable_asserts or optimize == .Debug) "-DJPH_ENABLE_ASSERTS" else "",
             "-fno-access-control",
             "-fno-sanitize=undefined",
-        },
-    });
+        }
+    );
 
     const test_step = b.step("test", "Run zphysics tests");
 
@@ -209,7 +218,7 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(tests);
 
     // TODO: Problems with LTO on Windows.
-    if (target.result.os.tag == .windows) {
+    if (target.os_tag == .windows) {
         tests.want_lto = false;
     }
 
