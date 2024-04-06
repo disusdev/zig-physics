@@ -34,7 +34,7 @@ pub fn build(b: *std.Build) void {
 
     const zjolt = b.addModule("root", b.createModule(.{
         .source_file = .{ .path = "src/zphysics.zig" },
-    });
+    }));
     zjolt.addIncludePath(.{ .path = "libs/JoltC" });
 
     const joltc = b.addStaticLibrary(.{
@@ -225,7 +225,7 @@ pub fn build(b: *std.Build) void {
         },
     });
 
-    tests.root_module.addImport("zphysics_options", options_module);
+    // tests.root_module.addImport("zphysics_options", options_module);
     tests.addIncludePath(.{ .path = "libs/JoltC" });
     tests.linkLibrary(joltc);
 
