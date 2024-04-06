@@ -32,13 +32,8 @@ pub fn build(b: *std.Build) void {
         options_step.addOption(field.type, field.name, @field(options, field.name));
     }
 
-    const options_module = options_step.createModule();
-
-    const zjolt = b.addModule("root", .{
-        .root_source_file = .{ .path = "src/zphysics.zig" },
-        .imports = &.{
-            .{ .name = "zphysics_options", .module = options_module },
-        },
+    const zjolt = b.addModule("root", b.createModule(.{
+        .source_file = .{ .path = "src/zphysics.zig" },
     });
     zjolt.addIncludePath(.{ .path = "libs/JoltC" });
 
